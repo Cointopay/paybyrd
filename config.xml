@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<module>
+    <name>paybyrd</name>
+    <displayName><![CDATA[Paybyrd]]></displayName>
+    <version><![CDATA[1.0.1]]></version>
+    <description><![CDATA[Accept payments for your shop with Paybyrd]]></description>
+    <author><![CDATA[Therightsw.com]]></author>
+    <tab><![CDATA[payments_gateways]]></tab>
+	<confirmUninstall><![CDATA[Are you sure you want to delete Paybyrd?]]></confirmUninstall>
+    <is_configurable>1</is_configurable>
+    <need_instance>1</need_instance>
+</module>
