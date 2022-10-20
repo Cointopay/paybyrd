@@ -43,7 +43,7 @@ class PaybyrdPaymentModuleFrontController extends ModuleFrontController
         ]);
 
         $this->api_key = $config['PAYBYRD_API_KEY'];
-        $this->test_api_key = $config['TPAYBYRD_TEST_API_KEY'];
+        $this->test_api_key = $config['PAYBYRD_TEST_API_KEY'];
         $this->test_mode = $config['PAYBYRD_TEST_MODE'];
 
         $apiKey = $this->test_mode
