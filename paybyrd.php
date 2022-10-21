@@ -89,6 +89,25 @@ class Paybyrd extends PaymentModule
         return true;
     }
 
+    public function getContent()
+    {
+        if (Tools::isSubmit('btnSubmit')) {
+            if (!count($this->postErrors)) {
+                $this->postProcess();
+            } else {
+                foreach ($this->postErrors as $err) {
+                    $this->html .= $this->displayError($err);
+                }
+            }
+        } else {
+            $this->html .= '<br />';
+        }
+
+        $this->html .= $this->renderForm();
+
+        return $this->html;
+    }
+
     protected function postProcess()
     {
         if (!Tools::getValue('PAYBYRD_API_KEY')) {
@@ -231,23 +250,16 @@ class Paybyrd extends PaymentModule
         return $helper->generateForm($fieldsForm);
     }
 
-    public function getContent()
+    public function getConfigFieldsValues()
     {
-        if (Tools::isSubmit('btnSubmit')) {
-            if (!count($this->postErrors)) {
-                $this->postProcess();
-            } else {
-                foreach ($this->postErrors as $err) {
-                    $this->html .= $this->displayError($err);
-                }
-            }
-        } else {
-            $this->html .= '<br />';
-        }
-
-        $this->html .= $this->renderForm();
-
-        return $this->html;
+        return array(
+            'PAYBYRD_API_KEY' => Tools::getValue('PAYBYRD_API_KEY', Configuration::get('PAYBYRD_API_KEY')),
+            'PAYBYRD_TEST_API_KEY' => Tools::getValue('PAYBYRD_TEST_API_KEY', Configuration::get('PAYBYRD_TEST_API_KEY')),
+            'PAYBYRD_TEST_MODE' => Tools::getValue('PAYBYRD_TEST_MODE', Configuration::get('PAYBYRD_TEST_MODE')),
+            'PAYBYRD_HOOK_URL' => Tools::getValue('PAYBYRD_HOOK_URL', Configuration::get('PAYBYRD_HOOK_URL')),
+            'PAYBYRD_HOOK_USER' => Tools::getValue('PAYBYRD_HOOK_USER', Configuration::get('PAYBYRD_HOOK_USER')),
+            'PAYBYRD_HOOK_PASSWORD' => Tools::getValue('PAYBYRD_HOOK_PASSWORD', Configuration::get('PAYBYRD_HOOK_PASSWORD')),
+        );
     }
 
     public function hookPaymentOptions($params)
@@ -256,13 +268,6 @@ class Paybyrd extends PaymentModule
         if (!$this->checkCurrency($params['cart'])) return;
 
         return [$this->getPaybyrdPayment()];
-    }
-
-    public function hookPaymentReturn($params)
-    {
-        if (!$this->active) return;
-
-        return $this->fetch('module:paybyrd/views/templates/front/payment_return.tpl');
     }
 
     public function checkCurrency($cart)
@@ -281,18 +286,6 @@ class Paybyrd extends PaymentModule
         return false;
     }
 
-    public function getConfigFieldsValues()
-    {
-        return array(
-            'PAYBYRD_API_KEY' => Tools::getValue('PAYBYRD_API_KEY', Configuration::get('PAYBYRD_API_KEY')),
-            'PAYBYRD_TEST_API_KEY' => Tools::getValue('PAYBYRD_TEST_API_KEY', Configuration::get('PAYBYRD_TEST_API_KEY')),
-            'PAYBYRD_TEST_MODE' => Tools::getValue('PAYBYRD_TEST_MODE', Configuration::get('PAYBYRD_TEST_MODE')),
-            'PAYBYRD_HOOK_URL' => Tools::getValue('PAYBYRD_HOOK_URL', Configuration::get('PAYBYRD_HOOK_URL')),
-            'PAYBYRD_HOOK_USER' => Tools::getValue('PAYBYRD_HOOK_USER', Configuration::get('PAYBYRD_HOOK_USER')),
-            'PAYBYRD_HOOK_PASSWORD' => Tools::getValue('PAYBYRD_HOOK_PASSWORD', Configuration::get('PAYBYRD_HOOK_PASSWORD')),
-        );
-    }
-
     public function getPaybyrdPayment()
     {
         $paybyrdOption = new PaymentOption();
@@ -303,5 +296,12 @@ class Paybyrd extends PaymentModule
             );
 
         return $paybyrdOption;
+    }
+
+    public function hookPaymentReturn($params)
+    {
+        if (!$this->active) return;
+
+        return $this->fetch('module:paybyrd/views/templates/front/payment_return.tpl');
     }
 }
