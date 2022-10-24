@@ -65,11 +65,13 @@ class PaybyrdPaymentModuleFrontController extends ModuleFrontController
 
         $operationId = sha1($cart->id . $apiKey);
 
-        $redirectUrl = $baseURL . 'module/paybyrd/validation?id_cart=' . $cart->id
-            . '&id_module=' . $this->module->id
-            . '&id_order=' . $this->module->currentOrder
-            . '&key=' . $customer->secure_key
-            . '&operationId=' . $operationId;
+        $redirectUrl = $this->context->link->getModuleLink('paybyrd', 'validation', array(
+            'id_cart' => $cart->id,
+			'id_module' => $this->module->id,
+			'id_order' => $this->module->currentOrder,
+            'key' => $customer->secure_key,
+            'operationId' => $operationId
+        ), true);
 
         $amount = $cart->getOrderTotal(true, Cart::BOTH);
 

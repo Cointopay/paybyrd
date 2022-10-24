@@ -82,9 +82,15 @@ class Paybyrd extends PaymentModule
 
     public function install()
     {
-        if (!parent::install() || !$this->registerHook('paymentOptions') || !$this->registerHook('paymentReturn')) {
-            return false;
-        }
+        if (_PS_VERSION_ >= '1.7.7') {
+			if (!parent::install() || !$this->registerHook('paymentOptions') || !$this->registerHook('paymentReturn') || !$this->registerHook('DisplayAdminOrder')) {
+				return false;
+			}
+		} else {
+			if (!parent::install() || !$this->registerHook('paymentOptions') || !$this->registerHook('paymentReturn') || !$this->registerHook('DisplayAdminOrderLeft')) {
+				return false;
+			}
+		}
 
         return true;
     }
@@ -303,5 +309,130 @@ class Paybyrd extends PaymentModule
         if (!$this->active) return;
 
         return $this->fetch('module:paybyrd/views/templates/front/payment_return.tpl');
+    }
+	
+	public function hookDisplayAdminOrder($params)
+    {
+        if (!$this->active) return;
+        $id_order = (int)$params['id_order'];
+        $order = new Order($id_order);
+		
+        return $this->displayPaybyrdPaymentLink($order);
+    }
+	
+	public function displayPaybyrdPaymentLink($order)
+    {
+        $Ordtotal = (float)$order->total_paid;
+        $link = new Link();
+		$customer = $order->getCustomer();
+		
+        $paymentUrl = $link->getModuleLink('paybyrd', 'makepayment', array(
+            'id_order' => $order->reference,
+            'amount' => $Ordtotal,
+			'customerEmail' => $customer->email
+        ), true);
+        
+        if (Tools::isSubmit('send' . $this->name . 'Payment')) {
+            $data = array(
+                '{firstname}' => $customer->firstname,
+                '{lastname}' => $customer->lastname,
+                '{paymentUrl}' => $paymentUrl,
+            );
+            Mail::Send(
+                (int)$order->id_lang,
+                'paybyrd',
+                'Credit card payment form for your order ' . $order->getUniqReference(),
+                $data,
+                $customer->email,
+                $customer->firstname . ' ' . $customer->lastname,
+                null,
+                null,
+                null,
+                null,
+                dirname(__FILE__) . '/mails/',
+                false,
+                (int)$order->id_shop
+            );
+
+            Tools::redirectAdmin('index.php?controller=AdminOrders&id_order=' . $order->id . '&vieworder&conf=10&token=' . $_GET['token']);
+        }
+
+        return '<div class="panel">
+                    <div class="panel-heading">Payment Page (' . $this->displayName . ')</div>
+                    <div>Payment Page For this Order: <br/>' . $paymentUrl . '</div>
+                    <form method="post" style="display: inline-block;">
+                        <input type="submit" class="btn btn-outline-secondary" name="send{$this->name}Payment" value="Send To Customer" />
+                    </form>
+                    <button class="btn btn-outline-secondary" style="margin-left: 10px;" onclick="paybyrdCopyPaymentUrl(this);" data-url="' . $paymentUrl . '">
+                        Copy URL to Clipboard
+                    </button>
+                </div>
+                <script>
+                    if (paybyrdCopyPaymentUrl !== "function") {
+                        function paybyrdCopyPaymentUrl(_self) {
+                            navigator.clipboard.writeText(_self.dataset.url);
+                        }
+                    }
+                </script>';
+    }
+	
+	public function hookDisplayAdminOrderLeft($params)
+    {
+        if (!$this->active) return;
+        $id_order = (int)$params['id_order'];
+        $order = new Order($id_order);
+		
+        return $this->displayPaybyrdPaymentLinkLeft($order);
+    }
+	
+	public function displayPaybyrdPaymentLinkLeft($order)
+    {
+        $Ordtotal = (float)$order->total_paid;
+        $link = new Link();
+		$customer = $order->getCustomer();
+        $paymentUrl = Context::getContext()->shop->getBaseURL(true) . 'module/' . $this->name . '/makepayment?id_order=' . $order->reference . '&amount=' . $Ordtotal.'&customerEmail='.$customer->email;
+        
+        if (Tools::isSubmit('send' . $this->name . 'Payment')) {
+            $data = array(
+                '{firstname}' => $customer->firstname,
+                '{lastname}' => $customer->lastname,
+                '{paymentUrl}' => $paymentUrl,
+            );
+            Mail::Send(
+                (int)$order->id_lang,
+                'paybyrd',
+                'Credit card payment form for your order ' . $order->getUniqReference(),
+                $data,
+                $customer->email,
+                $customer->firstname . ' ' . $customer->lastname,
+                null,
+                null,
+                null,
+                null,
+                dirname(__FILE__) . '/mails/',
+                false,
+                (int)$order->id_shop
+            );
+
+            Tools::redirectAdmin('index.php?controller=AdminOrders&id_order=' . $order->id . '&vieworder&conf=10&token=' . $_GET['token']);
+        }
+
+        return '<div class="panel">
+                    <div class="panel-heading">Payment Page (' . $this->displayName . ')</div>
+                    <div>Payment Page For this Order: <br/>' . $paymentUrl . '</div>
+                    <form method="post" style="display: inline-block;">
+                        <input type="submit" class="btn btn-outline-secondary" name="send{$this->name}Payment" value="Send To Customer" />
+                    </form>
+                    <button class="btn btn-outline-secondary" style="margin-left: 10px;" onclick="paybyrdCopyPaymentUrl(this);" data-url="' . $paymentUrl . '">
+                        Copy URL to Clipboard
+                    </button>
+                </div>
+                <script>
+                    if (paybyrdCopyPaymentUrl !== "function") {
+                        function paybyrdCopyPaymentUrl(_self) {
+                            navigator.clipboard.writeText(_self.dataset.url);
+                        }
+                    }
+                </script>';
     }
 }
