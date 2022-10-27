@@ -113,7 +113,7 @@ class PaybyrdPaymentModuleFrontController extends ModuleFrontController
         if ($response ? $response->orderId : false) {
             $this->module->validateOrder(
                 $cart->id,
-                Configuration::get('PS_OS_CHEQUE'),
+                Configuration::get('PS_OS_COD_VALIDATION'),
                 $total,
                 $this->module->displayName,
                 null,
