@@ -62,7 +62,6 @@ class PaybyrdPaymentModuleFrontController extends ModuleFrontController
         $baseURL = Context::getContext()->shop->getBaseURL(true);
         $customer = new Customer($cart->id_customer);
         $total = (float)($cart->getOrderTotal(true, Cart::BOTH));
-		$orderObj = new Order($this->module->currentOrder);
 
         $operationId = sha1($cart->id . $apiKey);
 
@@ -79,7 +78,7 @@ class PaybyrdPaymentModuleFrontController extends ModuleFrontController
         $body = [
             'isoAmount' => round((float)$amount * 100),
             'currency' => Context::getContext()->currency->iso_code,
-            'orderRef' => $orderObj->reference,
+            'orderRef' => 'pb_' . $cart->id,
             'shopper' => array(
                 'email' => $customer->email,
                 'firstName' => $customer->firstname,
