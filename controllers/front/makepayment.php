@@ -46,6 +46,22 @@ class PaybyrdMakepaymentModuleFrontController extends ModuleFrontController
 			$api_key = Configuration::get('PAYBYRD_TEST_API_KEY');
 		}
 		
+		$idOrder = $_GET['internal_order_id'];
+		$idLangDefault = (int) Configuration::get('PS_LANG_DEFAULT');
+		$idCart = Cart::getCartIdByOrderId($idOrder);
+		$cart = new Cart($idCart, $idLangDefault);
+		$order = Order::getByCartId($idCart);
+		$customer = new Customer($cart->id_customer);
+		$operationId = sha1($cart->id . $api_key);
+		
+		$redirectUrl = $this->context->link->getModuleLink('paybyrd', 'validation', array(
+            'id_cart' => $cart->id,
+			'id_module' => $this->module->id,
+			'id_order' => $idOrder,
+            'key' => $customer->secure_key,
+            'operationId' => $operationId
+        ), true);
+		
 		$curl = curl_init();
 
 		curl_setopt_array($curl, array(
@@ -57,11 +73,12 @@ class PaybyrdMakepaymentModuleFrontController extends ModuleFrontController
 		  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
 		  CURLOPT_CUSTOMREQUEST => "POST",
 		  CURLOPT_POSTFIELDS => json_encode(array(
-		    "isPreAuth" => false,
-			"Amount" => (float)$_GET['amount'],
+			"amount" => (float)$_GET['amount'],
+			"isPreAuth" => false,
+			"OrderRef" => $id_order,
+			"redirectUrl" => $redirectUrl,
 			"SellerEmailAddress" => Configuration::get('PS_SHOP_EMAIL'),
-			"shopperEmailAddress" => $_GET['customerEmail'],
-			"OrderRef" => $id_order
+			"shopperEmailAddress" => $_GET['customerEmail']
 		)),
 		  CURLOPT_HTTPHEADER => array(
 			"accept: application/json",

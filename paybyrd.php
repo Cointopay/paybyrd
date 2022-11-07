@@ -328,6 +328,7 @@ class Paybyrd extends PaymentModule
 		
         $paymentUrl = $link->getModuleLink('paybyrd', 'makepayment', array(
             'id_order' => $order->reference,
+			'internal_order_id' => $order->id,
             'amount' => $Ordtotal,
 			'customerEmail' => $customer->email
         ), true);
@@ -390,7 +391,7 @@ class Paybyrd extends PaymentModule
         $Ordtotal = (float)$order->total_paid;
         $link = new Link();
 		$customer = $order->getCustomer();
-        $paymentUrl = Context::getContext()->shop->getBaseURL(true) . 'module/' . $this->name . '/makepayment?id_order=' . $order->reference . '&amount=' . $Ordtotal.'&customerEmail='.$customer->email;
+        $paymentUrl = Context::getContext()->shop->getBaseURL(true) . 'module/' . $this->name . '/makepayment?id_order=' . $order->reference . '&internal_order_id=' . $order->id . '&amount=' . $Ordtotal.'&customerEmail='.$customer->email;
         
         if (Tools::isSubmit('send' . $this->name . 'Payment')) {
             $data = array(
