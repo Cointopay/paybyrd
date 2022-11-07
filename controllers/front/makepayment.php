@@ -75,7 +75,7 @@ class PaybyrdMakepaymentModuleFrontController extends ModuleFrontController
 		  CURLOPT_POSTFIELDS => json_encode(array(
 			"amount" => (float)$_GET['amount'],
 			"isPreAuth" => false,
-			"OrderRef" => $id_order,
+			"OrderRef" => 'pb_' . $cart->id,
 			"redirectUrl" => $redirectUrl,
 			"SellerEmailAddress" => Configuration::get('PS_SHOP_EMAIL'),
 			"shopperEmailAddress" => $_GET['customerEmail']
