@@ -62,7 +62,18 @@ class PaybyrdPaymentModuleFrontController extends ModuleFrontController
         $baseURL = Context::getContext()->shop->getBaseURL(true);
         $customer = new Customer($cart->id_customer);
         $total = (float)($cart->getOrderTotal(true, Cart::BOTH));
-		$this->module->validateOrder(
+		$amount = $cart->getOrderTotal(true, Cart::BOTH);
+		$operationId = sha1($cart->id . $apiKey);
+
+        $redirectUrl = $this->context->link->getModuleLink('paybyrd', 'validation', array(
+            'id_cart' => $cart->id,
+			'id_module' => $this->module->id,
+			'id_order' => $this->module->currentOrder,
+            'key' => $customer->secure_key,
+            'operationId' => $operationId
+        ), true);
+		
+        $this->module->validateOrder(
 			$cart->id,
 			Configuration::get('PS_OS_COD_VALIDATION'),
 			$total,
@@ -73,19 +84,10 @@ class PaybyrdPaymentModuleFrontController extends ModuleFrontController
 			false,
 			$customer->secure_key
 		);
+        
+
+        
 		$orderObj = new Order($this->module->currentOrder);
-
-        $operationId = sha1($cart->id . $apiKey);
-
-        $redirectUrl = $this->context->link->getModuleLink('paybyrd', 'validation', array(
-            'id_cart' => $cart->id,
-			'id_module' => $this->module->id,
-			'id_order' => $this->module->currentOrder,
-            'key' => $customer->secure_key,
-            'operationId' => $operationId
-        ), true);
-
-        $amount = $cart->getOrderTotal(true, Cart::BOTH);
 
         $body = [
             'isoAmount' => round((float)$amount * 100),
@@ -122,9 +124,9 @@ class PaybyrdPaymentModuleFrontController extends ModuleFrontController
         $result = Tools::file_get_contents('https://gateway.paybyrd.com/api/v2/orders', false, $context);
         $response = json_decode($result);
 
-       /* if ($response ? $response->orderId : false) {
-            
-        }*/
+        if ($response ? $response->orderId : false) {
+
+        }
 
         $this->context->smarty->assign([
             'checkoutKey' => $response ? $response->checkoutKey : '',

@@ -69,7 +69,7 @@ class PaybyrdValidationModuleFrontController extends ModuleFrontController
 
         $idLangDefault = (int) Configuration::get('PS_LANG_DEFAULT');
 
-        $idCart = Tools::substr($response ? $response->orderRef : 0, 3);
+        $idCart = Tools::getValue('id_cart');
         $cart = new Cart($idCart, $idLangDefault);
         $order = Order::getByCartId($idCart);
         $customer = new Customer($cart->id_customer);
@@ -106,7 +106,7 @@ class PaybyrdValidationModuleFrontController extends ModuleFrontController
                 }
 
                 Tools::redirect(
-                    'index.php?controller=order-confirmation&id_cart=' . $cart->id . '&id_module=' . $this->module->id . '&id_order=' . $this->module->currentOrder . '&key=' . $customer->secure_key
+                    'index.php?controller=order-confirmation&id_cart=' . $cart->id . '&id_module=' . $this->module->id . '&id_order=' . $order->id . '&key=' . $customer->secure_key
                 );
             }
         }
