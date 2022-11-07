@@ -62,6 +62,18 @@ class PaybyrdPaymentModuleFrontController extends ModuleFrontController
         $baseURL = Context::getContext()->shop->getBaseURL(true);
         $customer = new Customer($cart->id_customer);
         $total = (float)($cart->getOrderTotal(true, Cart::BOTH));
+		$this->module->validateOrder(
+			$cart->id,
+			Configuration::get('PS_OS_COD_VALIDATION'),
+			$total,
+			$this->module->displayName,
+			null,
+			array(),
+			Context::getContext()->currency->id,
+			false,
+			$customer->secure_key
+		);
+		$orderObj = new Order($this->module->currentOrder);
 
         $operationId = sha1($cart->id . $apiKey);
 
@@ -78,7 +90,7 @@ class PaybyrdPaymentModuleFrontController extends ModuleFrontController
         $body = [
             'isoAmount' => round((float)$amount * 100),
             'currency' => Context::getContext()->currency->iso_code,
-            'orderRef' => 'pb_' . $cart->id,
+            'orderRef' => $orderObj->reference,
             'shopper' => array(
                 'email' => $customer->email,
                 'firstName' => $customer->firstname,
@@ -110,19 +122,9 @@ class PaybyrdPaymentModuleFrontController extends ModuleFrontController
         $result = Tools::file_get_contents('https://gateway.paybyrd.com/api/v2/orders', false, $context);
         $response = json_decode($result);
 
-        if ($response ? $response->orderId : false) {
-            $this->module->validateOrder(
-                $cart->id,
-                Configuration::get('PS_OS_COD_VALIDATION'),
-                $total,
-                $this->module->displayName,
-                null,
-                array(),
-                Context::getContext()->currency->id,
-                false,
-                $customer->secure_key
-            );
-        }
+       /* if ($response ? $response->orderId : false) {
+            
+        }*/
 
         $this->context->smarty->assign([
             'checkoutKey' => $response ? $response->checkoutKey : '',
