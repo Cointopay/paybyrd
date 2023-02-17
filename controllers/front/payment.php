@@ -102,10 +102,7 @@ class PaybyrdPaymentModuleFrontController extends ModuleFrontController
                 'redirectUrl' => $redirectUrl
             ),
             'paymentOptions' => array(
-                'useSimulated' => !!$this->test_mode,
-                'tokenOptions' => array(
-                    'customReference' => $customer->email
-                )
+                'useSimulated' => !!$this->test_mode
             )
         ];
 
